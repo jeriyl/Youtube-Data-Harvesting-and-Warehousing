@@ -596,7 +596,7 @@ if selected == "Data Analysis":
         "3. What are the top 10 most viewed videos and their respective channels?",
         "4. How many comments were made on each video, and what are their corresponding video names?",
         "5. Which videos have the highest number of likes, and what are their corresponding channel names?",
-        "6. What is the total number of likes and dislikes for each video, and what are their corresponding video names?",
+        "6. What is the total number of likes for each video, and what are their corresponding video names?",
         "7. What is the total number of views for each channel, and what are their corresponding channel names?",
         "8. What are the names of all the channels that have published videos in the year 2022?",
         "9. What is the average duration of all videos in each channel, and what are their corresponding channel names?",
@@ -633,4 +633,59 @@ if selected == "Data Analysis":
         df1 = pd.DataFrame(t1,columns=["CHANNEL NAME","VIDEO NAME","VIEW_COUNT"])
         df1.index = df1.index + 1
         st.write(df1)
+    elif question == "4. How many comments were made on each video, and what are their corresponding video names?":
+        query1 = """SELECT CHANNEL_NAME,VIDEO_NAME,COMMENTS_COUNT FROM VIDEO_TABLE"""
+        cursor.execute(query1)
+        t1 = cursor.fetchall()
+        df1 = pd.DataFrame(t1,columns=["CHANNEL NAME","VIDEO NAME","COMMENTS_COUNT"])
+        df1.index = df1.index + 1
+        st.write(df1)
+    elif question == "5. Which videos have the highest number of likes, and what are their corresponding channel names?":
+        query1 = """SELECT CHANNEL_NAME,VIDEO_NAME,LIKE_COUNT FROM VIDEO_TABLE ORDER BY LIKE_COUNT DESC;"""
+        cursor.execute(query1)
+        t1 = cursor.fetchall()
+        df1 = pd.DataFrame(t1,columns=["CHANNEL NAME","VIDEO NAME","LIKE_COUNT"])
+        df1.index = df1.index + 1
+        st.write(df1)
+    elif question == "6. What is the total number of likes for each video, and what are their corresponding video names?":
+        query1 = """SELECT CHANNEL_NAME,VIDEO_NAME,LIKE_COUNT FROM VIDEO_TABLE"""
+        cursor.execute(query1)
+        t1 = cursor.fetchall()
+        df1 = pd.DataFrame(t1,columns=["CHANNEL NAME","VIDEO NAME","LIKE_COUNT"])
+        df1.index = df1.index + 1
+        st.write(df1)
+    elif question == "7. What is the total number of views for each channel, and what are their corresponding channel names?":
+        query1 = """SELECT CHANNEL_NAME,CHANNEL_VIEWS FROM CHANNEL_TABLE"""
+        cursor.execute(query1)
+        t1 = cursor.fetchall()
+        df1 = pd.DataFrame(t1,columns=["CHANNEL NAME","CHANNEL_VIEWS"])
+        df1.index = df1.index + 1
+        st.write(df1)
+    elif question == "8. What are the names of all the channels that have published videos in the year 2022?",:
+        query1 = """SELECT CHANNEL_NAME,PUBLISHED_DATE FROM VIDEO_TABLE 
+                    WHERE YEAR(PUBLISHED_DATE) = 2022;"""
+        cursor.execute(query1)
+        t1 = cursor.fetchall()
+        df1 = pd.DataFrame(t1,columns=["CHANNEL NAME","PUBLISHED_DATE"])
+        df1.index = df1.index + 1
+        st.write(df1)
+    elif question == "9. What is the average duration of all videos in each channel, and what are their corresponding channel names?":
+        query1 = """SELECT CHANNEL_NAME,PUBLISHED_DATE FROM VIDEO_TABLE 
+                    WHERE YEAR(PUBLISHED_DATE) = 2022;"""
+        cursor.execute(query1)
+        t1 = cursor.fetchall()
+        df1 = pd.DataFrame(t1,columns=["CHANNEL NAME","PUBLISHED_DATE"])
+        df1.index = df1.index + 1
+        st.write(df1)
+    elif question == "10. Which videos have the highest number of comments, and what are their corresponding channel names?":
+        query1 = """SELECT CHANNEL_NAME,VIDEO_NAME,COMMENTS_COUNT FROM VIDEO_TABLE ORDER BY COMMENTS_COUNT DESC;"""
+        cursor.execute(query1)
+        t1 = cursor.fetchall()
+        df1 = pd.DataFrame(t1,columns=["CHANNEL NAME","VIDEO_NAME","COMMENTS_COUNT"])
+        df1.index = df1.index + 1
+        st.write(df1)
+    
+    
+    
+    
     
