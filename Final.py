@@ -21,17 +21,15 @@ channel_id7="UCZjRcM1ukeciMZ7_fvzsezQ" #coding is fun
 channel_id8="UCQeWT4fMOC8zgh3vtn83KVw" #junior tales
 channel_id9="UCmSJaNF_2BFeah-Q1cM7c6A" #writeup stories
 channel_id10="UCnSBH14-eDPf-B39ueNG0-g" #kiddiee tales
-channel_id=channel_id10
-
+channel_id=channel_id1
 
 api_key1="AIzaSyAe7chpUyFRqYu3Y6FnULzNl6pPkEs04iM"
 api_key2="AIzaSyA0t7cl3lP8N_J3Edy_25AzlSNOs6Z7P4o"
 api_key3="AIzaSyCIeDfCvAqON3vm6haold0pnFGeG_FjDpg"
 api_key=api_key3
 
-client=pymongo.MongoClient('mongodb+srv://jeriyl:atlas12345@youtubeproject.ockmy5w.mongodb.net/')
-db=client["YouTube_Project"]
-collection=db["YouTube_Channels"]
+youtube = googleapiclient.discovery.build(
+        "youtube", "v3", developerKey=api_key)
 
 sys.stdout.reconfigure(encoding='utf-8')
 
@@ -54,9 +52,8 @@ def get_channel_details(channel_id):
             TOTAL_VIDEOS=i['statistics']['videoCount']
             )
     return channeldata
+
 def get_video_id(channel_id):
-    youtube = googleapiclient.discovery.build(
-        "youtube", "v3", developerKey=api_key)
     request = youtube.videos().list(
         part="snippet,contentDetails,statistics",
         id=channel_id
@@ -64,8 +61,6 @@ def get_video_id(channel_id):
     response = request.execute()
 
 def get_video_ids(channel_id):
-    youtube = googleapiclient.discovery.build(
-        "youtube", "v3", developerKey=api_key)
     next_page_token=None
     video_ids=[]
     response=youtube.channels().list(part="contentDetails",
@@ -90,17 +85,15 @@ def get_video_ids(channel_id):
     return(video_ids)
 
 total_video_ids=get_video_ids(channel_id)
-#pprint(total_video_ids)
 
 # Set default encoding to 'utf-8'
 if sys.stdout.encoding != 'utf-8':
     sys.stdout = open(sys.stdout.fileno(), mode='w', encoding='utf-8', buffering=1)
 
 def video_details(listofids):
+    
     video_datas=[]
     for x in total_video_ids:
-        youtube = googleapiclient.discovery.build(
-        "youtube", "v3", developerKey=api_key)
         request=youtube.videos().list(
             part='snippet,contentDetails,statistics',
             id=x)
@@ -110,6 +103,7 @@ def video_details(listofids):
             
             video_data=dict(
                 CHANNEL_NAME=item['snippet']['channelTitle'],
+                CHANNEL_ID=item['snippet']['channelId'],
                 VIDEO_NAME=item['snippet']['localized']['title'],
                 VIDEO_ID=item['id'],
                 VIDEO_DESCRIPTION=item['snippet']['description'],
@@ -121,19 +115,15 @@ def video_details(listofids):
                 COMMENTS_COUNT=item['statistics'].get('commentCount'),
                 DURATION=item['contentDetails']['duration'],
                 THUMBNAIL=item['snippet']['thumbnails']['default']['url'],
-                CAPTION_STATUS=item['contentDetails']['caption']
+                CAPTION_STATUS=item['contentDetails']['caption'],
+                DEFINITION=item['contentDetails']['definition']
             )
         video_datas.append(video_data)
     return video_datas
-    
-#channel_video_details=video_details(total_video_ids)
-#print(len(channel_video_details))
-#pprint(channel_video_details)
 
 def comment_details(v_ids):
     comment_datas = []
-    youtube = googleapiclient.discovery.build(
-        "youtube", "v3", developerKey=api_key)
+
     for comment_id in v_ids:
         try:
             request = youtube.commentThreads().list(
@@ -145,6 +135,7 @@ def comment_details(v_ids):
             for item in response['items']:
                 comment_data = {
                     'COMMENT_ID': item['id'],
+                    'VIDEO_ID':item['snippet']['topLevelComment']['id'],
                     'AUTHOR_NAME': item['snippet']['topLevelComment']['snippet']['authorDisplayName'],
                     'PUBLISHED_DATE': item['snippet']['topLevelComment']['snippet']['publishedAt'],
                     'COMMENT_TEXT': item['snippet']['topLevelComment']['snippet']['textDisplay']
@@ -162,13 +153,7 @@ def comment_details(v_ids):
             
     return(comment_datas)
 
-#video_comment_details=comment_details(total_video_ids)
-#pprint(video_comment_details)
-#print("Comment Details are Obtained!")
-
 def playlist_details(channel_id):
-    youtube = googleapiclient.discovery.build(
-        "youtube", "v3", developerKey=api_key)
     playlist_datas=[]
     request = youtube.playlists().list(
             part="snippet,contentDetails",
@@ -182,13 +167,18 @@ def playlist_details(channel_id):
             CHANNEL_NAME=item['snippet']['channelTitle'],
             PLAYLIST_ID=item['id'],
             TITLE=item['snippet']['title'],
-            CHANNEL_ID=item['snippet']['channelId']
+            CHANNEL_ID=item['snippet']['channelId'],
+            PUBLISHED_DATE=item['snippet']['publishedAt'],
+            VIDEO_COUNT=item['contentDetails']['itemCount']
+
         )
         playlist_datas.append(playlist_data)
 
     return(playlist_datas)
-#playlist_info=playlist_details(channel_id)
-#pprint(playlist_info)
+
+client=pymongo.MongoClient('mongodb+srv://jeriyl:atlas12345@youtubeproject.ockmy5w.mongodb.net/')
+db=client["YouTube_Project"]
+collection=db["Channels"]
 
 def channels(channel_id):
     Channel=get_channel_details(channel_id)
@@ -203,59 +193,60 @@ def channels(channel_id):
                     "Playlist-Details":Playlist})
     return("Uploaded Successfully")
 
-mon_con=channels(channel_id)
-    
+#mon_con=channels(channel_id)
+
 def channel_table():
     database1 = mysql.connector.connect(
         user='root',
         password='mysql@123',
-        database='YouTube_Project',
+        database='YouTubeProject',
         host='localhost'
     )
     cursor=database1.cursor()
     
-    drop_query= """drop table if exists channel_details_table"""
+    drop_query= """drop table if exists channel_table"""
     cursor.execute(drop_query)
     database1.commit()
 
     try:
-        create_channel_table='''create table if not exists channel_table(CHANNEL_NAME varchar(50),
-                                                                                CHANNEL_ID varchar(100) primary key,
-                                                                                CHANNEL_DESCRIPTION text,
-                                                                                CHANNEL_VIEWS bigint,
-                                                                                SUBSCRIPTION_COUNT bigint,
-                                                                                PLAYLIST_ID varchar(100),
-                                                                                TOTAL_VIDEOS bigint)'''
+        create_channel_table='''create table channel_table(CHANNEL_NAME varchar(50),
+                                                            CHANNEL_ID varchar(100) primary key,
+                                                            SUBSCRIPTION_COUNT bigint,
+                                                            CHANNEL_VIEWS bigint,
+                                                            CHANNEL_DESCRIPTION text, 
+                                                            PLAYLIST_ID varchar(100),
+                                                            TOTAL_VIDEOS bigint)'''
         cursor.execute(create_channel_table)
         database1.commit()
-
     except:
-        print("Table already created!")
+        print("Channel Table is created")
 
     channel_list=[]
     client=pymongo.MongoClient('mongodb+srv://jeriyl:atlas12345@youtubeproject.ockmy5w.mongodb.net/')
     db=client["YouTube_Project"]
-    coll1=db["YouTube_Channels"]
+    collection=db["Channels"]
     for ch_data in coll1.find({},{"_id":0,"Channel-Details":1}):
         channel_list.append(ch_data['Channel-Details'])
-
+    
     df=pd.DataFrame(channel_list)
+    #pd.set_option('display.max_rows', None)
+    #pd.set_option('display.max_columns', None)
     #print(df)
 
     for index, row in df.iterrows():
         insert_values = """INSERT INTO channel_table (CHANNEL_NAME,
                                                             CHANNEL_ID,
-                                                            CHANNEL_DESCRIPTION,
-                                                            CHANNEL_VIEWS,
                                                             SUBSCRIPTION_COUNT,
+                                                            CHANNEL_VIEWS,
+                                                            CHANNEL_DESCRIPTION,
                                                             PLAYLIST_ID,
                                                             TOTAL_VIDEOS)
-                        VALUES (%s, %s, %s, %s, %s, %s)"""
+                        VALUES (%s, %s, %s, %s, %s, %s,%s)"""
         values = (row['CHANNEL_NAME'],
                 row['CHANNEL_ID'],
-                row['CHANNEL_DESCRIPTION'],
-                row['CHANNEL_VIEWS'],
                 row['SUBSCRIPTION_COUNT'], 
+                row['CHANNEL_VIEWS'],
+                row['CHANNEL_DESCRIPTION'],
                 row['PLAYLIST_ID'],
                 row['TOTAL_VIDEOS'])
         try:
@@ -268,7 +259,7 @@ def video_table():
     database1 = mysql.connector.connect(
         user='root',
         password='mysql@123',
-        database='YouTube_Project',
+        database='YouTubeProject',
         host='localhost'
     )
     cursor = database1.cursor()
@@ -276,10 +267,11 @@ def video_table():
     video_list = []
     client=pymongo.MongoClient('mongodb+srv://jeriyl:atlas12345@youtubeproject.ockmy5w.mongodb.net/')
     db=client["YouTube_Project"]
-    coll1=db["YouTube_Channels"]
+    collection=db["Channels"]
     try:
         create_video_table = '''create table if not exists video_table(
                                                                 CHANNEL_NAME varchar(150),
+                                                                CHANNEL_ID varchar(100),
                                                                 VIDEO_NAME varchar(150),
                                                                 VIDEO_ID varchar(150) primary key,
                                                                 VIDEO_DESCRIPTION text,
@@ -291,23 +283,26 @@ def video_table():
                                                                 COMMENTS_COUNT bigint,
                                                                 DURATION varchar(50),
                                                                 THUMBNAIL varchar(200),
-                                                                CAPTION_STATUS varchar(10)
+                                                                CAPTION_STATUS varchar(10),
+                                                                DEFINITION varchar(10)
                                                                 )'''
         cursor.execute(create_video_table)
         database1.commit()
     except mysql.connector.Error as e:
         print("Error creating video_table:", e)
 
-    for video_data in coll1.find({}, {"_id": 0, "Video-Details": 1}):
+    for video_data in coll1.find({},{"_id": 0, "Video-Details": 1}):
         for i in range(len(video_data['Video-Details'])):
             video_list.append(video_data['Video-Details'][i])
 
     df2 = pd.DataFrame(video_list)
     df2.replace({pd.NA: None}, inplace=True)
 
+
     for index, row in df2.iterrows():
         try:
             channel_name = row['CHANNEL_NAME']
+            channel_id = row["CHANNEL_ID"]
             video_name = row['VIDEO_NAME']
             video_id = row['VIDEO_ID']
             video_description = row['VIDEO_DESCRIPTION']
@@ -320,8 +315,10 @@ def video_table():
             duration = row['DURATION']
             thumbnail = row['THUMBNAIL']
             caption_status = row['CAPTION_STATUS']
+            definition =row['DEFINITION']
 
             insert_values = """INSERT INTO video_table(CHANNEL_NAME,
+                                                            CHANNEL_ID,
                                                             VIDEO_NAME,
                                                             VIDEO_ID,
                                                             VIDEO_DESCRIPTION,
@@ -333,37 +330,33 @@ def video_table():
                                                             COMMENTS_COUNT,
                                                             DURATION,
                                                             THUMBNAIL,
-                                                            CAPTION_STATUS)
+                                                            CAPTION_STATUS,
+                                                            DEFINITION)
                                                                 
-                            values (%s, %s, %s, %s,%s, %s, %s, %s,%s, %s, %s, %s, %s)"""
+                            values (%s, %s, %s, %s,%s, %s, %s, %s,%s, %s, %s, %s, %s,%s,%s)"""
 
-            values = tuple([channel_name, video_name, video_id, video_description,
+            values = tuple([channel_name,channel_id, video_name, video_id, video_description,
                             video_tags, published_date, view_count, like_count,
                             favourite_count, comments_count, duration, thumbnail,
-                            caption_status])
+                            caption_status,definition])
 
             cursor.execute(insert_values, values)
             database1.commit()
             
         except mysql.connector.IntegrityError as e:
-            #print("Duplicate entry error:", e)
-            # Optionally, you can log this error or handle it as per your application's requirements.
-            # For example, you can choose to skip the duplicate entry and continue with the next iteration.
             continue
         except Exception as e:
             print("Error inserting record:", e)
-            # Handle other exceptions here as needed.
+            
 
     cursor.close()
     database1.close()
-
-#video_table()
 
 def comments_table():
     database1 = mysql.connector.connect(
             user='root',
             password='mysql@123',
-            database='YouTube_Project',
+            database='YouTubeProject',
             host='localhost'
         )
     cursor=database1.cursor()
@@ -375,6 +368,7 @@ def comments_table():
         create_comments_table='''create table if not exists comments_table(
                                                                     AUTHOR_NAME varchar(50),
                                                                     COMMENT_ID varchar(150) primary key,
+                                                                    VIDEO_ID varchar(100),
                                                                     COMMENT_TEXT text,
                                                                     PUBLISHED_DATE timestamp
                                                                     )'''
@@ -386,41 +380,43 @@ def comments_table():
     comments_list=[]
     client=pymongo.MongoClient('mongodb+srv://jeriyl:atlas12345@youtubeproject.ockmy5w.mongodb.net/')
     db=client["YouTube_Project"]
-    coll1=db["YouTube_Channels"]
+    collection=db["Channels"]
     for comments_data in coll1.find({},{"_id":0,"Comments-Details":1}):
         for i in range(len(comments_data['Comments-Details'])):
             comments_list.append(comments_data['Comments-Details'][i])
 
             
     df3=pd.DataFrame(comments_list)
-    #print(df3)
+    #with pd.option_context('display.max_rows', None, 'display.max_columns', None):
+        #print(df3)
 
     df3.replace({pd.NA: None}, inplace=True)
     for index, row in df3.iterrows():
-                    insert_values = """INSERT IGNORE INTO comments_table(COMMENT_ID,
+                    insert_values = """INSERT IGNORE INTO comments_table(
+                                                                    COMMENT_ID,
+                                                                    VIDEO_ID,
                                                                     AUTHOR_NAME,
                                                                     PUBLISHED_DATE,
                                                                     COMMENT_TEXT
                                                                     )
-                                VALUES (%s, %s, %s, %s)"""
+                                VALUES (%s, %s, %s, %s, %s)"""
                     values = (row['COMMENT_ID'],
-                        row['AUTHOR_NAME'],
-                        row['PUBLISHED_DATE'],
-                        row['COMMENT_TEXT'])
+                              row['VIDEO_ID'],
+                            row['AUTHOR_NAME'],
+                            row['PUBLISHED_DATE'],
+                            row['COMMENT_TEXT'])
                 
                     try:
                         cursor.execute(insert_values, values)
                         database1.commit()
                     except:
-                        print("COMMENT TABLE VALUES ARE ALREADY INSERTED")
-
-#comments_table()
-
+                        pass
+                    
 def playlist_table():
     database1 = mysql.connector.connect(
         user='root',
         password='mysql@123',
-        database='YouTube_Project',
+        database='YouTubeProject',
         host='localhost'
     )
     cursor=database1.cursor()
@@ -433,7 +429,9 @@ def playlist_table():
         create_playlist_table='''create table if not exists playlist_table(PLAYLIST_ID varchar(50) primary key,
                                                                                     TITLE varchar(100),
                                                                                     CHANNEL_ID varchar(100),
-                                                                                    CHANNEL_NAME varchar(50)
+                                                                                    CHANNEL_NAME varchar(50),
+                                                                                    PUBLISHED_DATE timestamp,
+                                                                                    VIDEO_COUNT bigint
                                                                                     )'''
         cursor.execute(create_playlist_table)
         database1.commit()
@@ -443,37 +441,42 @@ def playlist_table():
     playlist_list=[]
     client=pymongo.MongoClient('mongodb+srv://jeriyl:atlas12345@youtubeproject.ockmy5w.mongodb.net/')
     db=client["YouTube_Project"]
-    coll1=db["YouTube_Channels"]
+    collection=db["Channels"]
     for pl_data in coll1.find({},{"_id":0,"Playlist-Details":1}):
         for i in range(len(pl_data['Playlist-Details'])):
             playlist_list.append(pl_data['Playlist-Details'][i])
 
             
     df4=pd.DataFrame(playlist_list)
-    #print(df4)
+    #with pd.option_context('display.max_rows', None, 'display.max_columns', None):
+        #print(df4)
 
     df4.replace({pd.NA: None}, inplace=True)
 
-
     for index, row in df4.iterrows():
-            insert_values = """INSERT IGNORE INTO playlist_table(PLAYLIST_ID,
+            insert_values = """INSERT IGNORE INTO playlist_table(
+                                                                CHANNEL_NAME,
+                                                                PLAYLIST_ID,
                                                                 TITLE,
                                                                 CHANNEL_ID,
-                                                                CHANNEL_NAME
+                                                                PUBLISHED_DATE,
+                                                                VIDEO_COUNT
                                                                 )
-                            VALUES (%s, %s, %s, %s)"""
-            values = (row['PLAYLIST_ID'],
+                            VALUES (%s, %s, %s, %s, %s, %s)"""
+            values = (
+                    row['CHANNEL_NAME'],
+                    row['PLAYLIST_ID'],
                     row['TITLE'],
                     row['CHANNEL_ID'],
-                    row['CHANNEL_NAME'])
+                    row['PUBLISHED_DATE'],
+                    row['VIDEO_COUNT']
+                    )
             
             try:
                     cursor.execute(insert_values, values)
                     database1.commit()
             except:
                     print("PLAYLIST VALUES ARE ALREADY INSERTED")
-
-#playlist_table()
 
 def tables():
      channel_table()
@@ -483,12 +486,13 @@ def tables():
 
      return "ALL TABLES ARE CREATED SUCCESSFULLY"
 
-#Tables=tables()
+
+
 
 def show_channel_table():
     channel_list=[]
     database=client["YouTube_Project"]
-    coll1=database["YouTube_Channels"]
+    coll1=database["Channels"]
     for ch_data in coll1.find({},{"_id":0,"Channel-Details":1}):
         channel_list.append(ch_data['Channel-Details'])
 
@@ -498,7 +502,7 @@ def show_channel_table():
 def show_video_table():
     video_list = []
     database=client["YouTube_Project"]
-    coll1=database["YouTube_Channels"]
+    coll1=database["Channels"]
     for video_data in coll1.find({}, {"_id": 0, "Video-Details": 1}):
         for i in range(len(video_data['Video-Details'])):
             video_list.append(video_data['Video-Details'][i])
@@ -509,7 +513,7 @@ def show_video_table():
 def show_comments_table():
     comments_list=[]
     database=client["YouTube_Project"]
-    coll1=database["YouTube_Channels"]
+    coll1=database["Channels"]
     for comments_data in coll1.find({},{"_id":0,"Comments-Details":1}):
         for i in range(len(comments_data['Comments-Details'])):
             comments_list.append(comments_data['Comments-Details'][i])
@@ -520,7 +524,7 @@ def show_comments_table():
 def show_playlist_table():
     playlist_list=[]
     database=client["YouTube_Project"]
-    coll1=database["YouTube_Channels"]
+    coll1=database["Channels"]
     for pl_data in coll1.find({},{"_id":0,"Playlist-Details":1}):
         for i in range(len(pl_data['Playlist-Details'])):
             playlist_list.append(pl_data['Playlist-Details'][i])
@@ -549,82 +553,19 @@ data = {
 if selected == "Data Collection":
     st.write("Copy the Desired channel id from the Table")
     st.dataframe(data,hide_index=None)
+
 elif selected =="Store in MongoDB":
     user_channel_id=st.text_input("Please provide the channel ID.")
     if st.button("Collect and store Data"):
         ch_ids=[]
         client=pymongo.MongoClient('mongodb+srv://jeriyl:atlas12345@youtubeproject.ockmy5w.mongodb.net/')
-        db=client["YouTube_Project"]
-        coll1=db["YouTube_Channels"]
+        db=client["YouTubeProject"]
+        coll1=db["Channels"]
+
         for ch_data in coll1.find({},{"_id":0,"Channel-Details":1}):
             ch_ids.append(ch_data["Channel-Details"]["CHANNEL_ID"])
         if user_channel_id in ch_ids:
             st.success("This channel details have already been recorded.")
         else:
             Channel=get_channel_details(user_channel_id)
-            collection.insert_one({"Channel-Details":Channel})
             st.success(Channel)
-elif selected =="Migration of Data":
-    if st.button("Migrate to SQL"):
-        tablesvar=tables()
-        st.success(tablesvar)
-        show_table=st.radio("Select the button for view",("Channel","Video","Comments","Playlist"))
-        if show_table=="Channel":
-            show_channel_table()
-        elif show_table=="Video":
-            show_video_table()
-        elif show_table=="Comments":
-            show_comments_table()
-        elif show_table=="Playlist":
-            show_playlist_table()
-        else:
-            print("Choose the appropriate option")
-
-
-
-
-
-
-if selected == "Data Analysis":
-    st.title("Data Analysis")
-    question = st.selectbox("Choose the question to get the result.", (
-        "1. What are the names of all the videos and their corresponding channels?",
-        "2. Which channels have the most number of videos, and how many videos do they have?",
-        "3. What are the top 10 most viewed videos and their respective channels?",
-        "4. How many comments were made on each video, and what are their corresponding video names?",
-        "5. Which videos have the highest number of likes, and what are their corresponding channel names?",
-        "6. What is the total number of likes and dislikes for each video, and what are their corresponding video names?",
-        "7. What is the total number of views for each channel, and what are their corresponding channel names?",
-        "8. What are the names of all the channels that have published videos in the year 2022?",
-        "9. What is the average duration of all videos in each channel, and what are their corresponding channel names?",
-        "10. Which videos have the highest number of comments, and what are their corresponding channel names?"
-    ))
-
-    database1 = mysql.connector.connect(
-        user='root',
-        password='mysql@123',
-        database='YouTube_Project',
-        host='localhost'
-    )
-    cursor = database1.cursor()
-
-    if question == "1. What are the names of all the videos and their corresponding channels?":
-        query1 = """select video_name as Video_Title , channel_name as Channel_Name from video_table"""
-        cursor.execute(query1)
-        t1 = cursor.fetchall()
-        df1 = pd.DataFrame(t1,columns=["VIDEO NAME","CHANNEL_NAME"])
-        st.write(df1)
-
-    elif question == "2. Which channels have the most number of videos, and how many videos do they have?":
-        query2 = """select channel_name as Channel_name , total_videos as Videos_count from channel_table
-                    order by total_videos desc"""
-        cursor.execute(query2)
-        t2 = cursor.fetchall()
-        df2 = pd.DataFrame(t2,columns=["CHANNEL NAME","VIDEO COUNT"])
-        st.write(df2)
-
-    else:
-        print("error")
-
-
-
