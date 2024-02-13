@@ -183,8 +183,8 @@ collection=db["Channels"]
 def channels(channel_id):
     Channel=get_channel_details(channel_id)
     list_video_id= get_video_ids(channel_id)
-    Video= video_details(total_video_ids)
-    Comments=comment_details(total_video_ids)
+    Video= video_details(list_video_id)
+    Comments=comment_details(list_video_id)
     Playlist=playlist_details(channel_id)
 
     collection.insert_one({"Channel-Details":Channel,
@@ -224,7 +224,7 @@ def channel_table():
     channel_list=[]
     client=pymongo.MongoClient('mongodb+srv://jeriyl:atlas12345@youtubeproject.ockmy5w.mongodb.net/')
     db=client["Mon_Project"]
-    collection=db["Channels"]
+    coll1=db["Channels"]
     for ch_data in coll1.find({},{"_id":0,"Channel-Details":1}):
         channel_list.append(ch_data['Channel-Details'])
     
@@ -267,7 +267,7 @@ def video_table():
     video_list = []
     client=pymongo.MongoClient('mongodb+srv://jeriyl:atlas12345@youtubeproject.ockmy5w.mongodb.net/')
     db=client["Mon_Project"]
-    collection=db["Channels"]
+    coll1=db["Channels"]
     try:
         create_video_table = '''create table if not exists video_table(
                                                                 CHANNEL_NAME varchar(150),
@@ -380,7 +380,7 @@ def comments_table():
     comments_list=[]
     client=pymongo.MongoClient('mongodb+srv://jeriyl:atlas12345@youtubeproject.ockmy5w.mongodb.net/')
     db=client["Mon_Project"]
-    collection=db["Channels"]
+    coll1=db["Channels"]
     for comments_data in coll1.find({},{"_id":0,"Comments-Details":1}):
         for i in range(len(comments_data['Comments-Details'])):
             comments_list.append(comments_data['Comments-Details'][i])
@@ -441,7 +441,7 @@ def playlist_table():
     playlist_list=[]
     client=pymongo.MongoClient('mongodb+srv://jeriyl:atlas12345@youtubeproject.ockmy5w.mongodb.net/')
     db=client["Mon_Project"]
-    collection=db["Channels"]
+    coll1=db["Channels"]
     for pl_data in coll1.find({},{"_id":0,"Playlist-Details":1}):
         for i in range(len(pl_data['Playlist-Details'])):
             playlist_list.append(pl_data['Playlist-Details'][i])
