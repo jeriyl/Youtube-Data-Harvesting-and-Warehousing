@@ -21,7 +21,6 @@ channel_id7="UCZjRcM1ukeciMZ7_fvzsezQ" #coding is fun
 channel_id8="UCQeWT4fMOC8zgh3vtn83KVw" #junior tales
 channel_id9="UCmSJaNF_2BFeah-Q1cM7c6A" #writeup stories
 channel_id10="UCnSBH14-eDPf-B39ueNG0-g" #kiddiee tales
-channel_id=channel_id1
 
 api_key1="AIzaSyAe7chpUyFRqYu3Y6FnULzNl6pPkEs04iM"
 api_key2="AIzaSyA0t7cl3lP8N_J3Edy_25AzlSNOs6Z7P4o"
@@ -60,7 +59,12 @@ def get_video_id(channel_id):
     )
     response = request.execute()
 
-def get_video_ids(channel_id):
+# Set default encoding to 'utf-8'
+if sys.stdout.encoding != 'utf-8':
+    sys.stdout = open(sys.stdout.fileno(), mode='w', encoding='utf-8', buffering=1)
+
+def video_details(channel_id):
+    
     next_page_token=None
     video_ids=[]
     response=youtube.channels().list(part="contentDetails",
@@ -82,17 +86,10 @@ def get_video_ids(channel_id):
 
         if next_page_token is None:
             break
-    return(video_ids)
-
-total_video_ids=get_video_ids(channel_id)
-
-# Set default encoding to 'utf-8'
-if sys.stdout.encoding != 'utf-8':
-    sys.stdout = open(sys.stdout.fileno(), mode='w', encoding='utf-8', buffering=1)
-
-def video_details(listofids):
+    total_video_ids=video_ids
     
     video_datas=[]
+    
     for x in total_video_ids:
         request=youtube.videos().list(
             part='snippet,contentDetails,statistics',
@@ -121,10 +118,33 @@ def video_details(listofids):
         video_datas.append(video_data)
     return video_datas
 
-def comment_details(v_ids):
+def comment_details(channel_id):
+    next_page_token=None
+    video_ids=[]
+    response=youtube.channels().list(part="contentDetails",
+                                        id=channel_id).execute()
+    playlist_id=response['items'][0]['contentDetails']['relatedPlaylists']['uploads']
+    #print(playlist_id)
+    while True:
+        request = youtube.playlistItems().list(
+                part="snippet",
+                playlistId=playlist_id,
+                maxResults=50,
+                pageToken=next_page_token)
+        response1 = request.execute()
+
+        for i in range(len(response1['items'])):
+            videoid=response1['items'][i]['snippet']['resourceId']['videoId']
+            video_ids.append(videoid)
+        next_page_token=response1.get('nextPageToken')
+
+        if next_page_token is None:
+            break
+    total_video_ids=video_ids
+    
     comment_datas = []
 
-    for comment_id in v_ids:
+    for comment_id in total_video_ids:
         try:
             request = youtube.commentThreads().list(
                 part='snippet',
@@ -182,9 +202,8 @@ collection=db["Channels"]
 
 def channels(channel_id):
     Channel=get_channel_details(channel_id)
-    list_video_id= get_video_ids(channel_id)
-    Video= video_details(list_video_id)
-    Comments=comment_details(list_video_id)
+    Video= video_details(channel_id)
+    Comments=comment_details(channel_id)
     Playlist=playlist_details(channel_id)
 
     collection.insert_one({"Channel-Details":Channel,
@@ -495,7 +514,6 @@ def show_channel_table():
     coll1=database["Channels"]
     for ch_data in coll1.find({},{"_id":0,"Channel-Details":1}):
         channel_list.append(ch_data['Channel-Details'])
-
     df1=st.dataframe(channel_list)
     return df1
 
@@ -506,7 +524,6 @@ def show_video_table():
     for video_data in coll1.find({}, {"_id": 0, "Video-Details": 1}):
         for i in range(len(video_data['Video-Details'])):
             video_list.append(video_data['Video-Details'][i])
-
     df2 = st.dataframe(video_list)
     return df2
 
@@ -516,8 +533,7 @@ def show_comments_table():
     coll1=database["Channels"]
     for comments_data in coll1.find({},{"_id":0,"Comments-Details":1}):
         for i in range(len(comments_data['Comments-Details'])):
-            comments_list.append(comments_data['Comments-Details'][i])
-         
+            comments_list.append(comments_data['Comments-Details'][i])    
     df3=st.dataframe(comments_list)
     return df3
 
@@ -527,9 +543,7 @@ def show_playlist_table():
     coll1=database["Channels"]
     for pl_data in coll1.find({},{"_id":0,"Playlist-Details":1}):
         for i in range(len(pl_data['Playlist-Details'])):
-            playlist_list.append(pl_data['Playlist-Details'][i])
-    
-            
+            playlist_list.append(pl_data['Playlist-Details'][i])        
     df4=st.dataframe(playlist_list)
     return df4
 
@@ -570,18 +584,17 @@ elif selected =="Store in MongoDB":
             Channel=channels(user_channel_id)
             st.success(Channel)
 elif selected =="Migration of Data":
-    
     if st.button("Migrate to SQL"):
         tables_result = tables()
         st.success(tables_result)
-        show_table=st.radio("Select the button for view",("Channel","Video","Comments","Playlist"))
-        if show_table=="Channel":
-            show_channel_table()
-        elif show_table=="Video":
-            show_video_table()
-        elif show_table=="Comments":
-            show_comments_table()
-        elif show_table=="Playlist":
-            show_playlist_table()
-        else:
-            print("Choose the appropriate option")
+    show_table=st.radio("Select the button for view",("Channel","Video","Comments","Playlist"))
+    if show_table=="Channel":
+        show_channel_table()
+    elif show_table=="Video":
+        show_video_table()
+    elif show_table=="Comments":
+        show_comments_table()
+    elif show_table=="Playlist":
+        show_playlist_table()
+    else:
+        print("Choose the appropriate option")
