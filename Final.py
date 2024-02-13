@@ -10,6 +10,8 @@ import json
 from datetime import datetime
 import streamlit as st
 from streamlit_option_menu import option_menu
+import re
+
 
 channel_id1="UCOtCKIoHcQvBl1GzRo7Z2SA" #Go4x4 
 channel_id2="UCtGbExCzlwmsyWKpxLnyEww" #shubh
@@ -274,6 +276,22 @@ def channel_table():
         except:
             pass
 
+def convert_duration(duration):
+    # Extract hours, minutes, and seconds using regular expressions
+    hours_match = re.search(r'(\d+)H', duration)
+    minutes_match = re.search(r'(\d+)M', duration)
+    seconds_match = re.search(r'(\d+)S', duration)
+
+    # Initialize variables for hours, minutes, and seconds
+    hours = int(hours_match.group(1)) if hours_match else 0
+    minutes = int(minutes_match.group(1)) if minutes_match else 0
+    seconds = int(seconds_match.group(1)) if seconds_match else 0
+
+    # Format the duration as desired (HH:MM:SS) 02 defines atleast 2 characters should be there
+    formatted_duration = '{:02}:{:02}:{:02}'.format(hours, minutes, seconds)
+    
+    return formatted_duration
+
 def video_table():
     database1 = mysql.connector.connect(
         user='root',
@@ -300,7 +318,7 @@ def video_table():
                                                                 LIKE_COUNT bigint,
                                                                 FAVOURITE_COUNT bigint,
                                                                 COMMENTS_COUNT bigint,
-                                                                DURATION varchar(50),
+                                                                DURATION time,
                                                                 THUMBNAIL varchar(200),
                                                                 CAPTION_STATUS varchar(10),
                                                                 DEFINITION varchar(10)
@@ -331,7 +349,8 @@ def video_table():
             like_count = row['LIKE_COUNT']
             favourite_count = row['FAVOURITE_COUNT']
             comments_count = row['COMMENTS_COUNT']
-            duration = row['DURATION']
+            dur = row['DURATION']
+            duration = convert_duration(dur)
             thumbnail = row['THUMBNAIL']
             caption_status = row['CAPTION_STATUS']
             definition =row['DEFINITION']
@@ -661,7 +680,7 @@ if selected == "Data Analysis":
         df1 = pd.DataFrame(t1,columns=["CHANNEL NAME","CHANNEL_VIEWS"])
         df1.index = df1.index + 1
         st.write(df1)
-    elif question == "8. What are the names of all the channels that have published videos in the year 2022?",:
+    elif question == "8. What are the names of all the channels that have published videos in the year 2022?":
         query1 = """SELECT CHANNEL_NAME,PUBLISHED_DATE FROM VIDEO_TABLE 
                     WHERE YEAR(PUBLISHED_DATE) = 2022;"""
         cursor.execute(query1)
@@ -670,8 +689,7 @@ if selected == "Data Analysis":
         df1.index = df1.index + 1
         st.write(df1)
     elif question == "9. What is the average duration of all videos in each channel, and what are their corresponding channel names?":
-        query1 = """SELECT CHANNEL_NAME,PUBLISHED_DATE FROM VIDEO_TABLE 
-                    WHERE YEAR(PUBLISHED_DATE) = 2022;"""
+        query1 = """SELECT Channel_name, CONCAT(FLOOR(AVG(TIME_TO_SEC(Duration)) / 3600), ' hours ', FLOOR((AVG(TIME_TO_SEC(Duration)) % 3600) / 60), ' minutes ', (AVG(TIME_TO_SEC(Duration)) % 60), ' seconds') AS Average_Duration FROM Video_table GROUP BY Channel_name;"""
         cursor.execute(query1)
         t1 = cursor.fetchall()
         df1 = pd.DataFrame(t1,columns=["CHANNEL NAME","PUBLISHED_DATE"])
