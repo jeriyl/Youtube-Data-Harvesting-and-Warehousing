@@ -566,8 +566,10 @@ def show_playlist_table():
     df4=st.dataframe(playlist_list)
     return df4
 
+st.set_page_config(layout="wide")
 st.title("YOUTUBE DATA HARVESTING AND WAREHOUSING")
 st.markdown("___________")
+
 
 selected=option_menu(menu_title="YOUTUBE DATA HARVESTING AND WAREHOUSING",
                         options=["Data Collection","Store in MongoDB","Migration of Data","Data Analysis"],
