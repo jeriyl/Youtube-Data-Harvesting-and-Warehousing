@@ -12,3 +12,8 @@ pip install requirements.txt
 
 # To run the application
 streamlit run capstone1.py
+
+Screenshots from project
+![alt text](image.png)
+
+![alt text](image-1.png)
