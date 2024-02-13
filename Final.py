@@ -702,8 +702,3 @@ if selected == "Data Analysis":
         df1 = pd.DataFrame(t1,columns=["CHANNEL NAME","VIDEO_NAME","COMMENTS_COUNT"])
         df1.index = df1.index + 1
         st.write(df1)
-    
-    
-    
-    
-    
