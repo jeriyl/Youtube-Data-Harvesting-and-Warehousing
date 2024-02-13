@@ -12,18 +12,6 @@ import streamlit as st
 from streamlit_option_menu import option_menu
 import re
 
-
-channel_id1="UCOtCKIoHcQvBl1GzRo7Z2SA" #Go4x4 
-channel_id2="UCtGbExCzlwmsyWKpxLnyEww" #shubh
-channel_id3="UCPRlk51FNmMnIgF0I3A7N_Q" #Lotus Cakes
-channel_id4="UCQdE0I8SP4WKIg42oivvF9Q" #Kandra
-channel_id5="UCY1kMZp36IQSyNx_9h4mpCg" #mark rober
-channel_id6="UCj0aKGrBN6x2_PY0c6RrGNw" #Fanilo Andrianasolo
-channel_id7="UCZjRcM1ukeciMZ7_fvzsezQ" #coding is fun
-channel_id8="UCQeWT4fMOC8zgh3vtn83KVw" #junior tales
-channel_id9="UCmSJaNF_2BFeah-Q1cM7c6A" #writeup stories
-channel_id10="UCnSBH14-eDPf-B39ueNG0-g" #kiddiee tales
-
 api_key1="AIzaSyAe7chpUyFRqYu3Y6FnULzNl6pPkEs04iM"
 api_key2="AIzaSyA0t7cl3lP8N_J3Edy_25AzlSNOs6Z7P4o"
 api_key3="AIzaSyCIeDfCvAqON3vm6haold0pnFGeG_FjDpg"

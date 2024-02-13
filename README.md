@@ -11,4 +11,4 @@ python -m venv venv
 pip install requirements.txt
 
 # To run the application
-streamlit run .\Final.py
+streamlit run capstone1.py
