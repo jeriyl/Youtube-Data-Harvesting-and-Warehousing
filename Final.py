@@ -587,4 +587,50 @@ elif selected =="Migration of Data":
     if st.button("Migrate to SQL"):
         tables_result = tables()
         st.success(tables_result)
+
+if selected == "Data Analysis":
+    st.title("Data Analysis")
+    question = st.selectbox("Choose the question to get the result.", (
+        "1. What are the names of all the videos and their corresponding channels?",
+        "2. Which channels have the most number of videos, and how many videos do they have?",
+        "3. What are the top 10 most viewed videos and their respective channels?",
+        "4. How many comments were made on each video, and what are their corresponding video names?",
+        "5. Which videos have the highest number of likes, and what are their corresponding channel names?",
+        "6. What is the total number of likes and dislikes for each video, and what are their corresponding video names?",
+        "7. What is the total number of views for each channel, and what are their corresponding channel names?",
+        "8. What are the names of all the channels that have published videos in the year 2022?",
+        "9. What is the average duration of all videos in each channel, and what are their corresponding channel names?",
+        "10. Which videos have the highest number of comments, and what are their corresponding channel names?"
+    ))
+
+    database1 = mysql.connector.connect(
+        user='root',
+        password='mysql@123',
+        database='YouTube_Project',
+        host='localhost'
+    )
+    cursor = database1.cursor()
+
+    if question == "1. What are the names of all the videos and their corresponding channels?":
+        query1 = """select video_name, channel_name from video_table"""
+        cursor.execute(query1)
+        t1 = cursor.fetchall()
+        df1 = pd.DataFrame(t1,columns=["VIDEO NAME","CHANNEL_NAME"])
+        df1.index = df1.index + 1
+        st.write(df1)
+    elif question == "2. Which channels have the most number of videos, and how many videos do they have?":
+        query1 = """SELECT CHANNEL_NAME,TOTAL_VIDEOS FROM channel_table ORDER BY TOTAL_VIDEOS DESC;"""
+        cursor.execute(query1)
+        t1 = cursor.fetchall()
+        df1 = pd.DataFrame(t1,columns=["CHANNEL NAME","TOTAL_NO_OF_VIDEOS"])
+        df1.index = df1.index + 1
+        st.write(df1)
+    elif question == "3. What are the top 10 most viewed videos and their respective channels?":
+        query1 = """SELECT CHANNEL_NAME,VIDEO_NAME,VIEW_COUNT FROM video_table 
+                    ORDER BY view_count DESC LIMIT 10;"""
+        cursor.execute(query1)
+        t1 = cursor.fetchall()
+        df1 = pd.DataFrame(t1,columns=["CHANNEL NAME","VIDEO NAME","VIEW_COUNT"])
+        df1.index = df1.index + 1
+        st.write(df1)
     
