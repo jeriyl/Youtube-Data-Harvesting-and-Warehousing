@@ -16,9 +16,3 @@ show_table=st.radio("Select the button for view",("Channel","Video","Comments","
         else:
             print("Choose the appropriate option")
 
-elif selected =="Migration of Data":
-    
-    if st.button("Migrate to SQL"):
-        tables_result = tables()
-        st.success(tables_result)
-        
