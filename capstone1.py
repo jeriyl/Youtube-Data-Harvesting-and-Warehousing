@@ -602,20 +602,19 @@ elif selected == "Migration of Data":
     if st.button("Migrate to MYSQL",use_container_width=True):
         tables_result = tables()
         st.success(tables_result)
-    if st.button("Show Option Menu"):
-        selected1=option_menu(menu_title="Choose the option to view the Table",
+    selected1=option_menu(menu_title="Choose the option to view the Table",
                             options=["Channel Details","Video Details","Comments Details","Playlist Details"],
                         icons=["browser-edge","camera-video","chat-right-dots","file-music-fill"],
                         default_index=0,
                         orientation="vertical")
-        if selected1 == "Channel Details":
-            show_channel_table()
-        elif selected1 == "Video Details":
-            show_video_table()
-        elif selected1 == "Comments Details":
-            show_comments_table()
-        elif selected1 == "Playlist Details":
-            show_playlist_table()
+    if selected1 == "Channel Details":
+        show_channel_table()
+    elif selected1 == "Video Details":
+        show_video_table()
+    elif selected1 == "Comments Details":
+        show_comments_table()
+    elif selected1 == "Playlist Details":
+        show_playlist_table()
 
 if selected == "Data Analysis":
     st.title("Data Analysis")
