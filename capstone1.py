@@ -15,7 +15,7 @@ import re
 api_key1="AIzaSyAe7chpUyFRqYu3Y6FnULzNl6pPkEs04iM"
 api_key2="AIzaSyA0t7cl3lP8N_J3Edy_25AzlSNOs6Z7P4o"
 api_key3="AIzaSyCIeDfCvAqON3vm6haold0pnFGeG_FjDpg"
-api_key=api_key3
+api_key=api_key2
 
 youtube = googleapiclient.discovery.build(
         "youtube", "v3", developerKey=api_key)
@@ -555,12 +555,12 @@ def show_playlist_table():
     df4=st.dataframe(playlist_list)
     return df4
 
-st.set_page_config(layout="wide")
+st.set_page_config(layout="wide",page_icon="🚀")
 st.title("YOUTUBE DATA HARVESTING AND WAREHOUSING")
 st.markdown("___________")
 
 
-selected=option_menu(menu_title="YOUTUBE DATA HARVESTING AND WAREHOUSING",
+selected=option_menu(menu_title="Choose the option for Data Harvesting and Warehousing",
                         options=["Data Collection","Store in MongoDB","Migration of Data","Data Analysis"],
                     icons=["archive","cloud-upload","database-add","search"],
                     default_index=0,
@@ -569,10 +569,11 @@ selected=option_menu(menu_title="YOUTUBE DATA HARVESTING AND WAREHOUSING",
 
 data = {
         'Channel Name': ['Go4x4', 'Shubh', 'Lotus Cakes', 'Kandra', 'Mark Rober',
-                         'Fanilo Andrianasolo','Junior Tales','Coding is Fun','RITVIZ','Daniel Thrasher'],
+                         'Fanilo Andrianasolo','Junior Tales','Coding is Fun','RITVIZ','Daniel Thrasher','TheRoadRider'],
         'Channel ID': ["UCOtCKIoHcQvBl1GzRo7Z2SA", "UCtGbExCzlwmsyWKpxLnyEww", "UCPRlk51FNmMnIgF0I3A7N_Q", 
                        "UCQdE0I8SP4WKIg42oivvF9Q", "UCY1kMZp36IQSyNx_9h4mpCg","UCj0aKGrBN6x2_PY0c6RrGNw",
-                       "UCQeWT4fMOC8zgh3vtn83KVw","UCZjRcM1ukeciMZ7_fvzsezQ","UCLx-YFOk_NgXNG7uCXq8m5w","UCnZx--LpG2spgmlxOcC-DRA"]
+                       "UCQeWT4fMOC8zgh3vtn83KVw","UCZjRcM1ukeciMZ7_fvzsezQ","UCLx-YFOk_NgXNG7uCXq8m5w",
+                       "UCnZx--LpG2spgmlxOcC-DRA","UCnqm9NOWWJsYP9GVpdPf1QA"]
     }
 if selected == "Data Collection":
     st.write("Copy the Desired channel id from the Table")
@@ -598,26 +599,23 @@ elif selected =="Store in MongoDB":
             st.success(Channel)
 
 elif selected == "Migration of Data":
-
-    col1, col2, col3 = st.columns([2.5, 2, 1])
-    with col2:
-        if st.button("Migrate to SQL"):
-            tables_result = tables()
-            st.success(tables_result)
-
-    selected1=option_menu(menu_title="Choose the option to view the Table",
-                        options=["Channel Details","Video Details","Comments Details","Playlist Details"],
-                    icons=["browser-edge","camera-video","chat-right-dots","file-music-fill"],
-                    default_index=0,
-                    orientation="vertical")
-    if selected1 == "Channel Details":
-        show_channel_table()
-    elif selected1 == "Video Details":
-        show_video_table()
-    elif selected1 == "Comments Details":
-        show_comments_table()
-    elif selected1 == "Playlist Details":
-        show_playlist_table()
+    if st.button("Migrate to MYSQL",use_container_width=True):
+        tables_result = tables()
+        st.success(tables_result)
+    if st.button("Show Option Menu"):
+        selected1=option_menu(menu_title="Choose the option to view the Table",
+                            options=["Channel Details","Video Details","Comments Details","Playlist Details"],
+                        icons=["browser-edge","camera-video","chat-right-dots","file-music-fill"],
+                        default_index=0,
+                        orientation="vertical")
+        if selected1 == "Channel Details":
+            show_channel_table()
+        elif selected1 == "Video Details":
+            show_video_table()
+        elif selected1 == "Comments Details":
+            show_comments_table()
+        elif selected1 == "Playlist Details":
+            show_playlist_table()
 
 if selected == "Data Analysis":
     st.title("Data Analysis")
