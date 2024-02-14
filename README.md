@@ -13,12 +13,14 @@ pip install requirements.txt
 # To run the application
 streamlit run capstone1.py
 
-Screenshots from project
-![alt text](image.png)
+Screenshots from project:
+![alt text](image-2.png)
+![alt text](image-3.png)
+![alt text](image-4.png)
+![alt text](image-5.png)
 
-![alt text](image-1.png)
 
-elif selected == "Migration of Data":
-    if st.button("Migrate to SQL", class_="centered-button"):
-        tables_result = tables()
-        st.success(tables_result)
+
+
+
+
