@@ -587,7 +587,7 @@ elif selected =="Store in MongoDB":
     if st.button("Collect and store Data"):
         ch_ids=[]
         client=pymongo.MongoClient('mongodb+srv://jeriyl:atlas12345@youtubeproject.ockmy5w.mongodb.net/')
-        db=client["YouTubeProject"]
+        db=client["Mon_Project"]
         coll1=db["Channels"]
 
         for ch_data in coll1.find({},{"_id":0,"Channel-Details":1}):
@@ -597,6 +597,7 @@ elif selected =="Store in MongoDB":
         else:
             Channel=channels(user_channel_id)
             st.success(Channel)
+    
 
 elif selected == "Migration of Data":
     if st.button("Migrate to MYSQL",use_container_width=True):
