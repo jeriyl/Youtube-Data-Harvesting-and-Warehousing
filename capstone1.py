@@ -517,16 +517,17 @@ def tables():
 
 def show_channel_table():
     channel_list=[]
-    database=client["YouTube_Project"]
+    database=client["Mon_Project"]
     coll1=database["Channels"]
     for ch_data in coll1.find({},{"_id":0,"Channel-Details":1}):
         channel_list.append(ch_data['Channel-Details'])
     df1=st.dataframe(channel_list)
     return df1
 
+
 def show_video_table():
     video_list = []
-    database=client["YouTube_Project"]
+    database=client["Mon_Project"]
     coll1=database["Channels"]
     for video_data in coll1.find({}, {"_id": 0, "Video-Details": 1}):
         for i in range(len(video_data['Video-Details'])):
@@ -536,7 +537,7 @@ def show_video_table():
 
 def show_comments_table():
     comments_list=[]
-    database=client["YouTube_Project"]
+    database=client["Mon_Project"]
     coll1=database["Channels"]
     for comments_data in coll1.find({},{"_id":0,"Comments-Details":1}):
         for i in range(len(comments_data['Comments-Details'])):
@@ -546,7 +547,7 @@ def show_comments_table():
 
 def show_playlist_table():
     playlist_list=[]
-    database=client["YouTube_Project"]
+    database=client["Mon_Project"]
     coll1=database["Channels"]
     for pl_data in coll1.find({},{"_id":0,"Playlist-Details":1}):
         for i in range(len(pl_data['Playlist-Details'])):
@@ -568,14 +569,17 @@ selected=option_menu(menu_title="YOUTUBE DATA HARVESTING AND WAREHOUSING",
 
 data = {
         'Channel Name': ['Go4x4', 'Shubh', 'Lotus Cakes', 'Kandra', 'Mark Rober',
-                         'Fanilo Andrianasolo','Junior Tales','Coding is Fun'],
+                         'Fanilo Andrianasolo','Junior Tales','Coding is Fun','RITVIZ','Daniel Thrasher'],
         'Channel ID': ["UCOtCKIoHcQvBl1GzRo7Z2SA", "UCtGbExCzlwmsyWKpxLnyEww", "UCPRlk51FNmMnIgF0I3A7N_Q", 
                        "UCQdE0I8SP4WKIg42oivvF9Q", "UCY1kMZp36IQSyNx_9h4mpCg","UCj0aKGrBN6x2_PY0c6RrGNw",
-                       "UCQeWT4fMOC8zgh3vtn83KVw","UCZjRcM1ukeciMZ7_fvzsezQ"]
+                       "UCQeWT4fMOC8zgh3vtn83KVw","UCZjRcM1ukeciMZ7_fvzsezQ","UCLx-YFOk_NgXNG7uCXq8m5w","UCnZx--LpG2spgmlxOcC-DRA"]
     }
 if selected == "Data Collection":
     st.write("Copy the Desired channel id from the Table")
     st.dataframe(data,hide_index=None)
+
+    st.write("Get you Favorite Channel ID")
+    st.link_button("YOUTUBE", "https://www.youtube.com/")
 
 elif selected =="Store in MongoDB":
     user_channel_id=st.text_input("Please provide the channel ID.")
@@ -592,10 +596,28 @@ elif selected =="Store in MongoDB":
         else:
             Channel=channels(user_channel_id)
             st.success(Channel)
-elif selected =="Migration of Data":
-    if st.button("Migrate to SQL"):
-        tables_result = tables()
-        st.success(tables_result)
+
+elif selected == "Migration of Data":
+
+    col1, col2, col3 = st.columns([2.5, 2, 1])
+    with col2:
+        if st.button("Migrate to SQL"):
+            tables_result = tables()
+            st.success(tables_result)
+
+    selected1=option_menu(menu_title="Choose the option to view the Table",
+                        options=["Channel Details","Video Details","Comments Details","Playlist Details"],
+                    icons=["browser-edge","camera-video","chat-right-dots","file-music-fill"],
+                    default_index=0,
+                    orientation="vertical")
+    if selected1 == "Channel Details":
+        show_channel_table()
+    elif selected1 == "Video Details":
+        show_video_table()
+    elif selected1 == "Comments Details":
+        show_comments_table()
+    elif selected1 == "Playlist Details":
+        show_playlist_table()
 
 if selected == "Data Analysis":
     st.title("Data Analysis")
@@ -692,3 +714,6 @@ if selected == "Data Analysis":
         df1 = pd.DataFrame(t1,columns=["CHANNEL NAME","VIDEO_NAME","COMMENTS_COUNT"])
         df1.index = df1.index + 1
         st.write(df1)
+
+    if st.button("Done"):
+        st.balloons()

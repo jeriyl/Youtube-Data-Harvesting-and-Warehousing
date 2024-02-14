@@ -17,3 +17,8 @@ Screenshots from project
 ![alt text](image.png)
 
 ![alt text](image-1.png)
+
+elif selected == "Migration of Data":
+    if st.button("Migrate to SQL", class_="centered-button"):
+        tables_result = tables()
+        st.success(tables_result)
