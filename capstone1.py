@@ -13,7 +13,7 @@ from streamlit_option_menu import option_menu
 import re
 import plotly.express as px
 
-api_key1=***
+api_key1="AIzaSyAe7chpUyFRqYu3Y6FnULzNl6pPkEs04iM"
 api_key2=***
 api_key3=***
 api_key=api_key1
