@@ -14,7 +14,8 @@ import re
 import plotly.express as px
 
 api_key1="AIzaSyAe7chpUyFRqYu3Y6FnULzNl6pPkEs04iM"
-
+api_key2="AIzaSyA0t7cl3lP8N_J3Edy_25AzlSNOs6Z7P4o"
+api_key3="AIzaSyCIeDfCvAqON3vm6haold0pnFGeG_FjDpg"
 api_key=api_key1
 
 youtube = googleapiclient.discovery.build(
@@ -497,8 +498,14 @@ def tables(channel_id):
     return "ALL TABLES ARE CREATED SUCCESSFULLY"
 
 st.set_page_config(layout="wide",page_icon="🚀")
-st.title("YOUTUBE DATA HARVESTING AND WAREHOUSING")
-st.markdown("___________")
+st.markdown("<p style='font-size:40px; color:; text-align:center; font-weight:bold;'>Youtube Data Harvesting and Warehousing</p>", unsafe_allow_html=True)
+
+def setting_bg():
+    st.markdown(f""" <style>.stApp {{
+                        background:url("https://assets-global.website-files.com/5a9ee6416e90d20001b20038/64f5cd8693c1fcd9b5a525f6_Rectangle%20(5).svg");
+                        background-size: cover}}
+                     </style>""", unsafe_allow_html=True)
+setting_bg()
 
 
 selected=option_menu(menu_title="Choose the option for Data Harvesting and Warehousing",
@@ -509,25 +516,52 @@ selected=option_menu(menu_title="Choose the option for Data Harvesting and Wareh
                     )
 
 data = {
-        'Channel Name': ['Go4x4', 'Shubh', 'Lotus Cakes', 'Kandra', 'Mark Rober',
+        'Channel Name': [ 'Shubh', 'Lotus Cakes', 'Kandra', 'Mark Rober',
                          'Fanilo Andrianasolo','Junior Tales','Coding is Fun','RITVIZ','Daniel Thrasher','TheRoadRider'],
-        'Channel ID': ["UCOtCKIoHcQvBl1GzRo7Z2SA", "UCtGbExCzlwmsyWKpxLnyEww", "UCPRlk51FNmMnIgF0I3A7N_Q", 
+        'Channel ID': [ "UCtGbExCzlwmsyWKpxLnyEww", "UCPRlk51FNmMnIgF0I3A7N_Q", 
                        "UCQdE0I8SP4WKIg42oivvF9Q", "UCY1kMZp36IQSyNx_9h4mpCg","UCj0aKGrBN6x2_PY0c6RrGNw",
                        "UCQeWT4fMOC8zgh3vtn83KVw","UCZjRcM1ukeciMZ7_fvzsezQ","UCLx-YFOk_NgXNG7uCXq8m5w",
                        "UCnZx--LpG2spgmlxOcC-DRA","UCnqm9NOWWJsYP9GVpdPf1QA"]
     }
 if selected == "Data Collection":
-    st.markdown('<font color="red">Copy the Desired channel id from the Table</font>', unsafe_allow_html=True)
-    st.dataframe(data,hide_index=None)
-    st.markdown('<font color="red">Get your Favorite Channel ID</font>', unsafe_allow_html=True)
+    st.markdown('<font color="white" size="5">Copy the Desired channel id from the Table</font>', unsafe_allow_html=True)
+    df = pd.DataFrame(data)
+    df.index += 1  # Start index from 1
+    st.table(df)
+    st.markdown('<font color="white" size="5">Get your Favorite Channel ID</font>', unsafe_allow_html=True)
     st.link_button("YOUTUBE", "https://www.youtube.com/")
+    st.markdown('<style>table {border-collapse: collapse; width: 80%; margin-left:auto; margin-right:auto;}</style>', unsafe_allow_html=True)
+    st.markdown('<style>th, td {border: 1px solid black; text-align: center; padding: 8px;}</style>', unsafe_allow_html=True)
+    st.markdown('<style>th {background-color: #f2f2f2;}</style>', unsafe_allow_html=True)  # Color for header row
+    st.markdown('<style>td {background-color: #ffffff;}</style>', unsafe_allow_html=True)  # Color for data rows
+    
+    
 
 elif selected == "Store in MongoDB":
     client = pymongo.MongoClient('mongodb+srv://jeriyl94:atlas12345@youtubedataharvestingwa.oppgas0.mongodb.net/')
     db = client["Utube"]
     collection = db["Utube Details"]
 
-# Function to display channel details
+# Function to display available channels and corresponding IDs
+    def display_available_channels_with_ids():
+        channels = collection.find({}, {"_id": 0, "Channel-Details.CHANNEL_NAME": 1, "Channel-Details.CHANNEL_ID": 1})
+        
+        st.subheader("Available Channels with IDs")
+        for channel in channels:
+            channel_name = channel["Channel-Details"]["CHANNEL_NAME"]
+            channel_id = channel["Channel-Details"]["CHANNEL_ID"]
+            st.write(f"Channel Name: {channel_name}, Channel ID: {channel_id}")
+
+    # Main function
+    def main():
+        st.markdown('<center><font color="black" size="5"><b>YouTube Channel Details</b></font></center>', unsafe_allow_html=True)
+        b1 = st.button("Available Channels with IDs")
+        if b1:
+            display_available_channels_with_ids()
+
+    if __name__ == "__main__":
+        main()
+
     def display_channel_details(channel_id):
         channel_data = collection.find_one({"Channel-Details.CHANNEL_ID": channel_id}, {"_id": 0, "Channel-Details": 1})
         
@@ -539,9 +573,7 @@ elif selected == "Store in MongoDB":
 
     # Streamlit app
     def main():
-        st.subheader("YouTube Channel")
 
-        # Options for the user
         selected_option = st.radio("Choose an option", ["Display Channel Details", "Store in MongoDB"])
 
         if selected_option == "Display Channel Details":
@@ -578,21 +610,20 @@ elif selected == "Migration of Data":
     db = client["Utube"]
     collection = db["Utube Details"]
 
-    # Retrieve channel names and IDs from MongoDB collection
     channel_data = collection.find({}, {"_id": 0, "Channel-Details": 1})
     channels = [(ch_data["Channel-Details"]["CHANNEL_NAME"], ch_data["Channel-Details"]["CHANNEL_ID"]) for ch_data in channel_data]
 
-    # Dropdown to select a channel for migration
     selected_channel = st.selectbox(
         'Choose the Channel to get stored in MySQL',
-        [channel[0] for channel in channels])  # Display channel names in the dropdown
+        [channel[0] for channel in channels])  
 
     migration_button_clicked = st.button("Migrate Data")
 
     if migration_button_clicked:
         selected_channel_id = next(channel[1] for channel in channels if channel[0] == selected_channel)
         tables(selected_channel_id)
-        st.success("Tables are inserted in the MySQL")
+        st.success("Tables are inserted into the MySQL Database")
+        
 
 elif selected == "Data Analysis":
     st.header("Data Analysis")
